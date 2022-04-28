@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
 import { switchMap } from 'rxjs';
+import { ConfirmarComponent } from '../../components/confirmar/confirmar.component';
 import { Heroe, Publisher } from '../../interfaces/heroes.interface';
 import { HeroesService } from '../../services/heroes.service';
 
@@ -39,48 +41,60 @@ export class AgregarComponent implements OnInit {
     }
   ];
 
-  constructor( private heroesService: HeroesService,
-               private activatedRoute: ActivatedRoute,
-               private router: Router,
-               private snackBar: MatSnackBar ) { }
+  constructor(private heroesService: HeroesService,
+    private activatedRoute: ActivatedRoute,
+    private router: Router,
+    private snackBar: MatSnackBar,
+    private matDialog: MatDialog) { }
 
   ngOnInit(): void {
-    if (this.router.url.includes('editar')){
+    if (this.router.url.includes('editar')) {
       this.activatedRoute.params
-    .pipe(
-      switchMap(({id}) => this.heroesService.getHeroePorId(id))
-    )
-    .subscribe( heroe => this.heroe = heroe);
+        .pipe(
+          switchMap(({ id }) => this.heroesService.getHeroePorId(id))
+        )
+        .subscribe(heroe => this.heroe = heroe);
     } else {
       return;
     }
   }
 
-  guardar(){
-    if (this.heroe.superhero.trim().length === 0){
+  guardar() {
+    if (this.heroe.superhero.trim().length === 0) {
       return;
     }
 
-    if (this.heroe.id){
-      this.heroesService.actualizarHeroe( this.heroe )
-      .subscribe(
-        heroe => this.mostrarSnackbar('Registro actualizado')
-      );
-    }else{
-      this.heroesService.agregarHeroe( this.heroe ).subscribe( heroe => {
+    if (this.heroe.id) {
+      this.heroesService.actualizarHeroe(this.heroe)
+        .subscribe(
+          heroe => this.mostrarSnackbar('Registro actualizado')
+        );
+    } else {
+      this.heroesService.agregarHeroe(this.heroe).subscribe(heroe => {
         this.router.navigate(['/heroes/editar', heroe.id]);
         this.mostrarSnackbar('Registro creado')
       })
     }
   }
 
-  borrar(){
-    this.heroesService.borrarHeroe( this.heroe.id! ).subscribe( heroe =>
-        this.router.navigate(['/heroes']));
+  borrar() {
+    const dialog = this.matDialog.open(ConfirmarComponent, {
+      width: '250px',
+      data: this.heroe
+    });
+
+    dialog.afterClosed().subscribe(
+      (result => {
+        if (result) {
+          this.heroesService.borrarHeroe(this.heroe.id!).subscribe(heroe =>
+            this.router.navigate(['/heroes']));
+        }
+      })
+    );
   }
 
-  mostrarSnackbar( mensaje: string ){
-    this.snackBar.open(mensaje, 'Ok!',{
+  mostrarSnackbar(mensaje: string) {
+    this.snackBar.open(mensaje, 'Ok!', {
       duration: 2500
     });
   }

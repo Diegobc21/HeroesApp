@@ -1,4 +1,5 @@
 import { Pipe, PipeTransform } from '@angular/core';
+// import { NOTFOUND } from 'dns';
 import { Heroe } from '../interfaces/heroes.interface';
 
 @Pipe({
@@ -7,14 +8,22 @@ import { Heroe } from '../interfaces/heroes.interface';
 })
 export class ImagenPipe implements PipeTransform {
 
+  image: string = 'assets/no-image.png';
+
   transform(heroe: Heroe): string {
-    if (!heroe.id && !heroe.alt_img) {
-      return 'assets/no-image.png';
-    } else if (heroe.alt_img) {
-      return heroe.alt_img;
+    if (heroe.id && !heroe.alt_img && !`assets/heroes/${heroe.id}.jpg`){
+      this.image = 'assets/no-image.png';
+    } else if( heroe.id && heroe.alt_img ){
+      this.image = heroe.alt_img;
+    } else if (!heroe.id && !heroe.alt_img){
+      this.image = 'assets/no-image.png';
+    } else if (!heroe.id && heroe.alt_img){
+      this.image = heroe.alt_img;
     } else {
-      return `assets/heroes/${heroe.id}.jpg`;
+      this.image = `assets/heroes/${heroe.id}.jpg`;
     }
+
+    return this.image;
   }
 
 }
